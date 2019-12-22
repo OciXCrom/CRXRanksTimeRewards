@@ -26,16 +26,16 @@
 	const MAX_NAME_LENGTH = 32
 #endif
 
-#if !defined MAX_IP_LENGTH
-	const MAX_IP_LENGTH = 16
+#if !defined MAX_AUTHID_LENGTH
+	const MAX_AUTHID_LENGTH = 64
 #endif
 
 const MAX_NUM_LENGTH = 8
 const Float:TIME_FREQ = 60.0
-new const PLUGIN_VERSION[] = "1.0"
+new const PLUGIN_VERSION[] = "2.0"
 
-new Trie:g_tTimeRewards, g_pTimeout
-new g_szIP[MAX_PLAYERS + 1][MAX_IP_LENGTH], g_iPlayedTime[MAX_PLAYERS + 1], g_iVault
+new CRXRanks_SaveTypes:g_iSaveType, Trie:g_tTimeRewards, g_pTimeout
+new g_szInfo[MAX_PLAYERS + 1][MAX_AUTHID_LENGTH], g_iPlayedTime[MAX_PLAYERS + 1], g_iVault
 
 public plugin_init()
 {
@@ -43,6 +43,7 @@ public plugin_init()
 	register_cvar("CRXRanksTimeRewards", PLUGIN_VERSION, FCVAR_SERVER|FCVAR_SPONLY|FCVAR_UNLOGGED)
 	register_dictionary("RankSystemTimeRewards.txt")
 
+	g_iSaveType = crxranks_get_save_type()
 	g_pTimeout = register_cvar("crxranks_tr_timeout", "300")
 	g_iVault = nvault_open("CRXRanksTimeRewards")
 	g_tTimeRewards = TrieCreate()
@@ -98,11 +99,25 @@ ReadFile()
 
 public client_connect(id)
 {
-	new szPlayedTime[MAX_NUM_LENGTH], iTimeStamp
-	get_user_ip(id, g_szIP[id], charsmax(g_szIP[]), 1)
-	nvault_lookup(g_iVault, g_szIP[id], szPlayedTime, charsmax(szPlayedTime), iTimeStamp)
+	new szPlayedTime[MAX_NUM_LENGTH], iTimeout = get_pcvar_num(g_pTimeout), iTimeStamp
 
-	g_iPlayedTime[id] = get_systime() - iTimeStamp > get_pcvar_float(g_pTimeout) ? 0 : str_to_num(szPlayedTime)
+	switch(g_iSaveType)
+	{
+		case CRXRANKS_ST_NICKNAME, CRXRANKS_ST_IP: get_user_ip(id, g_szInfo[id], charsmax(g_szInfo[]), 1)
+		case CRXRANKS_ST_STEAMID: get_user_authid(id, g_szInfo[id], charsmax(g_szInfo[]))
+	}
+
+	nvault_lookup(g_iVault, g_szInfo[id], szPlayedTime, charsmax(szPlayedTime), iTimeStamp)
+
+	if(iTimeout)
+	{
+		g_iPlayedTime[id] = get_systime() - iTimeStamp > iTimeout ? 0 : str_to_num(szPlayedTime)
+	}
+	else
+	{
+		g_iPlayedTime[id] = str_to_num(szPlayedTime)
+	}
+
 	set_task(TIME_FREQ, "increase_played_time", id, .flags = "b")
 }
 
@@ -110,7 +125,7 @@ public client_disconnected(id)
 {
 	new szPlayedTime[MAX_NUM_LENGTH]
 	num_to_str(g_iPlayedTime[id], szPlayedTime, charsmax(szPlayedTime))
-	nvault_set(g_iVault, g_szIP[id], szPlayedTime)
+	nvault_set(g_iVault, g_szInfo[id], szPlayedTime)
 	remove_task(id)
 }
 
