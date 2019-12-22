@@ -1,0 +1,8 @@
+[en] -- OciXCrom
+CRXRANKS_TIME_REWARD = &x03%s &x01received &x04%i &x01XP for playing &x04%i &x01minutes.
+
+[mk] -- OciXCrom
+CRXRANKS_TIME_REWARD = &x03%s &x01dobi &x04%i &x01XP bidejkji igrashe &x04%i &x01minuti.
+
+[bg] -- OciXCrom
+CRXRANKS_TIME_REWARD = &x03%s &x01poluchi &x04%i &x01XP zashtoto igra &x04%i &x01minuti.
