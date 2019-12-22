@@ -1,8 +1,18 @@
 #include <amxmodx>
 #include <amxmisc>
-#include <cromchat>
-#include <crxranks>
 #include <nvault>
+
+#tryinclude <cromchat>
+
+#if !defined _cromchat_included
+	#error "cromchat.inc" is missing in your "scripting/include" folder. Download it from: "https://amxx-bg.info/inc/"
+#endif
+
+#tryinclude <crxranks>
+
+#if !defined _crxranks_included
+	#error This plugin requires OciXCrom's Rank System: "crxranks.inc" was not found in your "scripting/include" folder.
+#endif
 
 #if !defined client_disconnected
 	#define client_disconnected client_disconnect
